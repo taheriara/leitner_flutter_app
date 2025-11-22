@@ -4,7 +4,8 @@ import 'package:leitner_flutter_app/data/db_helper.dart';
 import '../data/models/flashcard_model.dart';
 
 class AllCardsPage extends StatefulWidget {
-  const AllCardsPage({super.key});
+  final int box;
+  const AllCardsPage({super.key, required this.box});
 
   @override
   State<AllCardsPage> createState() => _AllCardsPageState();
@@ -55,6 +56,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
       limit: _pageSize,
       offset: _currentPage * _pageSize,
       search: _searchQuery.isEmpty ? null : _searchQuery,
+      box: widget.box,
     );
 
     setState(() {
@@ -124,7 +126,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("All Words"),
+        title: Text(widget.box != 0 ? 'جعبه ${widget.box}' : 'همه لغات'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -141,20 +143,24 @@ class _AllCardsPageState extends State<AllCardsPage> {
       body: Column(
         children: [
           // نوار جستجو
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Search...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-            ),
-          ),
+          _cards.isNotEmpty || _searchQuery.isNotEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search...",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    ),
+                  ),
+                )
+              : Container(),
           // لیست کارت‌ها
           Expanded(
             child: _loading && _cards.isEmpty

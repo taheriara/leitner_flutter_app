@@ -34,13 +34,17 @@ class _HomePageState extends State<HomePage> {
   Widget _boxCard(int boxNumber) {
     return Card(
       child: ListTile(
-        title: Text('Box $boxNumber'),
-        subtitle: Text('${counts[boxNumber - 1]} card'),
+        title: Text(boxNumber != 0 ? 'Box ${boxNumber}' : 'همه لغات'),
+        subtitle: Text(
+          boxNumber != 0
+              ? '${counts[boxNumber - 1]} cards'
+              : '${counts.sum().toString()} cards',
+        ),
         trailing: Icon(Icons.chevron_right),
         onTap: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => BoxDetailPage(box: boxNumber)),
+            MaterialPageRoute(builder: (_) => AllCardsPage(box: boxNumber)),
           );
           await _loadCounts();
         },
@@ -68,6 +72,20 @@ class _HomePageState extends State<HomePage> {
           SizedBox(width: 30),
         ],
       ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+        // backgroundColor: const Color.fromRGBO(82, 170, 94, 1.0),
+        tooltip: 'Add Card',
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AddCardPage()),
+          );
+          await _loadCounts();
+        },
+        label: const Text('اضافه کردن کارت'),
+        icon: const Icon(Icons.add, size: 28),
+      ),
       body: RefreshIndicator(
         onRefresh: _loadCounts,
         child: ListView(
@@ -78,40 +96,29 @@ class _HomePageState extends State<HomePage> {
             _boxCard(3),
             _boxCard(4),
             _boxCard(5),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => AddCardPage()),
-                );
-                await _loadCounts();
-              },
-              icon: Icon(Icons.add),
-              label: Text('اضافه کردن کارت'),
-            ),
+            _boxCard(0),
+
             SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () async {
                 await DBHelper.instance.shiftReviewDates(1);
-
                 await _loadCounts();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("آخرین مرور به یک روز قبل تنظیم شد"),
+                  ),
+                );
               },
               icon: Icon(Icons.calendar_month),
               label: Text('تنظیم به یک روز قبل'),
-            ),
-            ElevatedButton(
-              child: const Text("همه لغات"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => AllCardsPage()),
-                );
-              },
             ),
           ],
         ),
       ),
     );
   }
+}
+
+extension ListSum on List<int> {
+  int sum() => this.fold(0, (prev, element) => prev + element);
 }

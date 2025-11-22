@@ -187,17 +187,31 @@ class DBHelper {
     int limit = 5,
     int offset = 0,
     String? search,
+    int box = 0, // ← فیلتر جدید
   }) async {
-    String whereClause = '';
+    // شرایط WHERE را یکجا جمع می‌کنیم
+    List<String> conditions = [];
     List<dynamic> whereArgs = [];
+
+    // String whereClause = '';
+    // List<dynamic> whereArgs = [];
     if (search != null && search.isNotEmpty) {
-      whereClause = 'english LIKE ? OR persian LIKE ?';
-      whereArgs = ['%$search%', '%$search%'];
+      conditions.add('(english LIKE ? OR persian LIKE ?)');
+      whereArgs.add('%$search%');
+      whereArgs.add('%$search%');
     }
+    // فیلتر بر اساس BOX
+    if (box != 0) {
+      conditions.add('box = ?');
+      whereArgs.add(box);
+    }
+
+    // ساخت WHERE نهایی
+    String? whereClause = conditions.isEmpty ? null : conditions.join(' AND ');
 
     final rows = await _db!.query(
       'cards',
-      where: whereClause.isEmpty ? null : whereClause,
+      where: whereClause,
       whereArgs: whereArgs.isEmpty ? null : whereArgs,
       orderBy: 'id DESC',
       limit: limit,

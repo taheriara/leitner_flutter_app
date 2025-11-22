@@ -144,6 +144,23 @@ class _StudyPageState extends State<StudyPage> {
   }
 
   Widget _buildCard(FlashCardModel card, bool showBack, double offset) {
+    Color textColor = Colors.black;
+    if (offset > 0) {
+      // فید سبز برای درست
+      textColor = Color.lerp(
+        Colors.black,
+        Colors.green,
+        (offset / 120).clamp(0, 1),
+      )!;
+    } else if (offset < 0) {
+      // فید قرمز برای نادرست
+      textColor = Color.lerp(
+        Colors.black,
+        Colors.red,
+        (-offset / 120).clamp(0, 1),
+      )!;
+    }
+
     return Card(
       elevation: 6,
       child: Container(
@@ -154,7 +171,7 @@ class _StudyPageState extends State<StudyPage> {
           child: Text(
             showBack ? card.persian : card.english,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 32),
+            style: TextStyle(fontSize: 32, color: textColor),
           ),
         ),
       ),
