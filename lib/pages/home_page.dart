@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:leitner_flutter_app/pages/all_cards_page.dart';
 import '../data/db_helper.dart';
 import 'add_card_page.dart';
-import 'box_detail_page.dart';
 import 'study_page.dart';
 
 class HomePage extends StatefulWidget {

@@ -73,7 +73,7 @@ class _StudyPageState extends State<StudyPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Study'),
+        title: Text('مرور کارت‌ها'),
         actions: [
           ?_index == _queue.length
               ? null
