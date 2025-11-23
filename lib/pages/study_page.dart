@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../data/db_helper.dart';
 import '../data/models/flashcard_model.dart';
+import 'package:leitner_flutter_app/services/tts_service.dart';
 
 class StudyPage extends StatefulWidget {
   const StudyPage({super.key});
@@ -16,6 +17,7 @@ class _StudyPageState extends State<StudyPage> {
   int _index = 0;
   bool _showBack = false;
   double _dragOffset = 0;
+  final _ttsService = TTSService();
 
   @override
   void initState() {
@@ -75,12 +77,7 @@ class _StudyPageState extends State<StudyPage> {
       appBar: AppBar(
         title: Text('مرور کارت‌ها'),
         actions: [
-          ?_index == _queue.length
-              ? null
-              : Text(
-                  'Card ${_index + 1} / ${_queue.length}',
-                  textAlign: TextAlign.center,
-                ),
+          ?_index == _queue.length ? null : Text('Card ${_index + 1} / ${_queue.length}', textAlign: TextAlign.center),
           SizedBox(width: 40),
         ],
       ),
@@ -90,29 +87,18 @@ class _StudyPageState extends State<StudyPage> {
             child: Padding(
               padding: EdgeInsets.all(12),
               child: done
-                  ? Center(
-                      child: Text(
-                        'مرور امروز تمام شد',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    )
+                  ? Center(child: Text('مرور امروز تمام شد', style: TextStyle(fontSize: 20)))
                   : Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (_index + 1 < _queue.length)
-                          _buildCard(_queue[_index + 1], false, 0),
+                        if (_index + 1 < _queue.length) _buildCard(_queue[_index + 1], false, 0),
                         Transform.translate(
                           offset: Offset(_dragOffset, 0),
                           child: GestureDetector(
                             onTap: () => setState(() => _showBack = !_showBack),
-                            onHorizontalDragUpdate: (d) =>
-                                setState(() => _dragOffset += d.delta.dx),
+                            onHorizontalDragUpdate: (d) => setState(() => _dragOffset += d.delta.dx),
                             onHorizontalDragEnd: _handleDragEnd,
-                            child: _buildCard(
-                              _queue[_index],
-                              _showBack,
-                              _dragOffset,
-                            ),
+                            child: _buildCard(_queue[_index], _showBack, _dragOffset),
                           ),
                         ),
                       ],
@@ -125,15 +111,9 @@ class _StudyPageState extends State<StudyPage> {
             //color: Colors.grey.shade200,
             child: Column(
               children: [
-                Text(
-                  "بزن رو کارت تا ترجمه رو ببنی",
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
+                Text("بزن رو کارت تا ترجمه رو ببنی", style: TextStyle(fontSize: 14, color: Colors.black87)),
                 SizedBox(height: 6),
-                Text(
-                  "← درست       نادرست →",
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
+                Text("← درست       نادرست →", style: TextStyle(fontSize: 13, color: Colors.black54)),
                 SizedBox(height: 14),
               ],
             ),
@@ -145,20 +125,13 @@ class _StudyPageState extends State<StudyPage> {
 
   Widget _buildCard(FlashCardModel card, bool showBack, double offset) {
     Color textColor = Colors.black;
+
     if (offset > 0) {
       // فید سبز برای درست
-      textColor = Color.lerp(
-        Colors.black,
-        Colors.green,
-        (offset / 120).clamp(0, 1),
-      )!;
+      textColor = Color.lerp(Colors.black, Colors.green, (offset / 120).clamp(0, 1))!;
     } else if (offset < 0) {
       // فید قرمز برای نادرست
-      textColor = Color.lerp(
-        Colors.black,
-        Colors.red,
-        (-offset / 120).clamp(0, 1),
-      )!;
+      textColor = Color.lerp(Colors.black, Colors.red, (-offset / 120).clamp(0, 1))!;
     }
 
     return Card(
@@ -175,10 +148,31 @@ class _StudyPageState extends State<StudyPage> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 32, color: textColor),
             ),
-            Text(card.phonetic ?? ''),
+            // if (!showBack) TextButton(onPressed: () => _speakText(card.english), child: Text(card.phonetic ?? '')),
+            SizedBox(
+              height: 48, // ارتفاع ثابت
+              child: !showBack
+                  ? TextButton(
+                      onPressed: (card.phonetic != null && card.phonetic!.isNotEmpty)
+                          ? () => _speakText(card.english)
+                          : null,
+                      child: Text(card.phonetic != null && card.phonetic!.isNotEmpty ? '${card.phonetic} 🕩' : ''),
+                    )
+                  : null,
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _speakText(String str) async {
+    try {
+      await _ttsService.speak(str);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red));
+    }
   }
 }
