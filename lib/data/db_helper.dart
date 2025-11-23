@@ -108,12 +108,7 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'leitner.db');
 
-    return await openDatabase(
-      path,
-      version: 3,
-      onCreate: _createDB,
-      onUpgrade: _upgradeDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -129,6 +124,7 @@ class DBHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         english TEXT NOT NULL,
         persian TEXT NOT NULL,
+        phonetic TEXT,
         box INTEGER NOT NULL,
         lastReviewed INTEGER NOT NULL,
         deckId INTEGER NOT NULL,
@@ -138,12 +134,6 @@ class DBHelper {
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
-      await db.execute('''
-      ALTER TABLE cards ADD COLUMN phonetic TEXT
-    ''');
-    }
-
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE decks (
@@ -229,22 +219,13 @@ class DBHelper {
 
   Future<List<FlashCardModel>> cardsByDeck(int deckId) async {
     final db = await database;
-    final rows = await db.query(
-      'cards',
-      where: 'deckId = ?',
-      whereArgs: [deckId],
-    );
+    final rows = await db.query('cards', where: 'deckId = ?', whereArgs: [deckId]);
     return rows.map((e) => FlashCardModel.fromMap(e)).toList();
   }
 
   Future<int> updateCard(FlashCardModel card) async {
     final db = await database;
-    return await db.update(
-      'cards',
-      card.toMap(),
-      where: 'id = ?',
-      whereArgs: [card.id],
-    );
+    return await db.update('cards', card.toMap(), where: 'id = ?', whereArgs: [card.id]);
   }
 
   Future<int> deleteCard(int id) async {
@@ -274,12 +255,7 @@ class DBHelper {
       // اجازه نده زمان منفی شود
       if (newTime < 0) newTime = 0;
 
-      await db.update(
-        'cards',
-        {'lastReviewed': newTime},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.update('cards', {'lastReviewed': newTime}, where: 'id = ?', whereArgs: [id]);
     }
   }
 
@@ -289,11 +265,7 @@ class DBHelper {
 
   Future<List<FlashCardModel>> dueCards(int deckId) async {
     final db = await database;
-    final rows = await db.query(
-      'cards',
-      where: 'deckId = ?',
-      whereArgs: [deckId],
-    );
+    final rows = await db.query('cards', where: 'deckId = ?', whereArgs: [deckId]);
 
     final cards = rows.map((e) => FlashCardModel.fromMap(e)).toList();
 

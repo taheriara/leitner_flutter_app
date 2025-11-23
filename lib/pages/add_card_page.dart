@@ -41,9 +41,7 @@ class _AddCardPageState extends State<AddCardPage> {
       if (_persianController.text.trim().isNotEmpty) return;
       setState(() => _isTranslating = true);
       try {
-        String tr = await _translator
-            .translate(text, to: 'fa')
-            .then((res) => res.text);
+        String tr = await _translator.translate(text, to: 'fa').then((res) => res.text);
         if (_englishController.text.trim() == text) {
           _persianController.text = tr;
           _speakText();
@@ -65,6 +63,7 @@ class _AddCardPageState extends State<AddCardPage> {
   void _clearAll() {
     _englishController.clear();
     _persianController.clear();
+    _phoneticText = '';
     setState(() {});
   }
 
@@ -72,16 +71,10 @@ class _AddCardPageState extends State<AddCardPage> {
     final eng = _englishController.text.trim();
     final fa = _persianController.text.trim();
     if (eng.isEmpty || fa.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('لطفاً هر دو قسمت را پر کنید')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('لطفاً هر دو قسمت را پر کنید')));
       return;
     }
-    final card = FlashCardModel(
-      english: eng,
-      persian: fa,
-      phonetic: _phoneticText,
-    );
+    final card = FlashCardModel(english: eng, persian: fa, phonetic: _phoneticText);
     await DBHelper.instance.insertCard(card);
     //Navigator.pop(context);
     _clearAll();
@@ -97,9 +90,9 @@ class _AddCardPageState extends State<AddCardPage> {
     try {
       await _ttsService.speak(_englishController.text);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red));
     } finally {
       setState(() {
         _isSpeaking = false;
@@ -115,9 +108,7 @@ class _AddCardPageState extends State<AddCardPage> {
     });
 
     try {
-      final pronunciation = await _pronunciationService.getPronunciation(
-        _englishController.text.trim(),
-      );
+      final pronunciation = await _pronunciationService.getPronunciation(_englishController.text.trim());
 
       if (pronunciation != null) {
         setState(() {
@@ -169,17 +160,13 @@ class _AddCardPageState extends State<AddCardPage> {
                   decoration: InputDecoration(
                     labelText: 'English (front)',
                     hintText: 'enter English word or phrase',
-                    suffixIcon:
-                        !_isTranslating && _englishController.text.isEmpty
+                    suffixIcon: !_isTranslating && _englishController.text.isEmpty
                         ? null
                         : GestureDetector(
                             onTap: () async {
                               _clearAll();
                             },
-                            child: Icon(
-                              _isTranslating ? null : Icons.clear,
-                              color: Colors.grey,
-                            ),
+                            child: Icon(_isTranslating ? null : Icons.clear, color: Colors.grey),
                           ),
                   ),
                 ),
@@ -194,8 +181,7 @@ class _AddCardPageState extends State<AddCardPage> {
                   decoration: InputDecoration(
                     labelText: 'Persian (back)',
                     hintText: 'translation will appear here',
-                    suffixIcon:
-                        !_isTranslating && _englishController.text.isEmpty
+                    suffixIcon: !_isTranslating && _englishController.text.isEmpty
                         ? null
                         : GestureDetector(
                             onTap: () async {
@@ -203,36 +189,22 @@ class _AddCardPageState extends State<AddCardPage> {
                                 _persianController.clear();
                               });
                             },
-                            child: Icon(
-                              _isTranslating ? null : Icons.clear,
-                              color: Colors.grey,
-                            ),
+                            child: Icon(_isTranslating ? null : Icons.clear, color: Colors.grey),
                           ),
                   ),
                 ),
                 if (_isTranslating)
                   Padding(
                     padding: EdgeInsets.only(right: 8),
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                   ),
               ],
             ),
             SizedBox(height: 8),
             Row(
               children: [
-                Checkbox(
-                  value: _autoTranslate,
-                  onChanged: (v) => setState(() => _autoTranslate = v ?? true),
-                ),
-                Expanded(
-                  child: Text(
-                    'پر کردن خودکار ترجمه با استفاده از Google Translate (اینترنت لازم است)',
-                  ),
-                ),
+                Checkbox(value: _autoTranslate, onChanged: (v) => setState(() => _autoTranslate = v ?? true)),
+                Expanded(child: Text('پر کردن خودکار ترجمه با استفاده از Google Translate (اینترنت لازم است)')),
                 IconButton(
                   icon: Icon(Icons.refresh),
                   tooltip: 'ترجمه دستی',
@@ -241,28 +213,31 @@ class _AddCardPageState extends State<AddCardPage> {
                     if (text.isEmpty) return;
                     setState(() => _isTranslating = true);
                     try {
-                      final tr = await _translator
-                          .translate(text, to: 'fa')
-                          .then((res) => res.text);
+                      final tr = await _translator.translate(text, to: 'fa').then((res) => res.text);
                       _persianController.text = tr;
                       _speakText();
                     } catch (e) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('خطا در ترجمه')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ترجمه')));
                     }
                     if (mounted) setState(() => _isTranslating = false);
                   },
                 ),
               ],
             ),
-            Text(_phoneticText ?? ''),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _saveCard,
-              icon: Icon(Icons.save),
-              label: Text('ذخیره'),
+            SizedBox(height: 14),
+            // TextButton(
+            //   onPressed: () => _speakText(),
+            //   child: Text(_phoneticText != null && _phoneticText!.isNotEmpty ? '$_phoneticText 🕩' : ''),
+            // ),
+            SizedBox(
+              height: 48, // ارتفاع ثابت
+              child: TextButton(
+                onPressed: (_phoneticText != null && _phoneticText!.isNotEmpty) ? () => _speakText() : null,
+                child: Text(_phoneticText != null && _phoneticText!.isNotEmpty ? '$_phoneticText 🕩' : ''),
+              ),
             ),
+            SizedBox(height: 14),
+            ElevatedButton.icon(onPressed: _saveCard, icon: Icon(Icons.save), label: Text('ذخیره')),
           ],
         ),
       ),
