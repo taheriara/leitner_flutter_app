@@ -21,10 +21,10 @@ class _AddCardPageState extends State<AddCardPage> {
   bool _isTranslating = false;
   final GoogleTranslator _translator = GoogleTranslator();
   final _ttsService = TTSService();
-  bool _isSpeaking = false;
+  // bool _isSpeaking = false;
   final _pronunciationService = PronunciationService();
   String? _phoneticText;
-  bool _isGettingPronunciation = false;
+  // bool _isGettingPronunciation = false;
 
   @override
   void initState() {
@@ -83,9 +83,9 @@ class _AddCardPageState extends State<AddCardPage> {
   Future<void> _speakText() async {
     if (_englishController.text.isEmpty) return;
 
-    setState(() {
-      _isSpeaking = true;
-    });
+    // setState(() {
+    //   _isSpeaking = true;
+    // });
 
     try {
       await _ttsService.speak(_englishController.text);
@@ -94,19 +94,14 @@ class _AddCardPageState extends State<AddCardPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red));
     } finally {
-      setState(() {
-        _isSpeaking = false;
-      });
+      // setState(() {
+      //   _isSpeaking = false;
+      // });
     }
   }
 
   Future<void> _getPronunciation() async {
     if (_englishController.text.isEmpty) return;
-
-    setState(() {
-      _isGettingPronunciation = true;
-    });
-
     try {
       final pronunciation = await _pronunciationService.getPronunciation(_englishController.text.trim());
 
@@ -115,33 +110,8 @@ class _AddCardPageState extends State<AddCardPage> {
           _phoneticText = pronunciation.phoneticText;
           //  _audioUrl = pronunciation.audioUrl;
         });
-
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('تلفظ دریافت شد'),
-        //     backgroundColor: Colors.green,
-        //   ),
-        // );
-      } else {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('تلفظ یافت نشد'),
-        //     backgroundColor: Colors.orange,
-        //   ),
-        // );
       }
-    } catch (e) {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text('خطا در دریافت تلفظ'),
-      //     backgroundColor: Colors.red,
-      //   ),
-      // );
-    } finally {
-      setState(() {
-        _isGettingPronunciation = false;
-      });
-    }
+    } catch (e) {}
   }
 
   @override
@@ -216,6 +186,7 @@ class _AddCardPageState extends State<AddCardPage> {
                       final tr = await _translator.translate(text, to: 'fa').then((res) => res.text);
                       _persianController.text = tr;
                       _speakText();
+                      _getPronunciation();
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ترجمه')));
                     }
