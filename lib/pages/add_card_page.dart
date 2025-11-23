@@ -2,6 +2,8 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:leitner_flutter_app/services/tts_service.dart';
+import '../services/pronunciation_service.dart';
 import 'package:translator/translator.dart';
 import '../data/db_helper.dart';
 import '../data/models/flashcard_model.dart';
@@ -18,6 +20,11 @@ class _AddCardPageState extends State<AddCardPage> {
   Timer? _debounce;
   bool _isTranslating = false;
   final GoogleTranslator _translator = GoogleTranslator();
+  final _ttsService = TTSService();
+  bool _isSpeaking = false;
+  final _pronunciationService = PronunciationService();
+  String? _phoneticText;
+  bool _isGettingPronunciation = false;
 
   @override
   void initState() {
@@ -39,6 +46,8 @@ class _AddCardPageState extends State<AddCardPage> {
             .then((res) => res.text);
         if (_englishController.text.trim() == text) {
           _persianController.text = tr;
+          _speakText();
+          _getPronunciation();
         }
       } catch (e) {}
       if (mounted) setState(() => _isTranslating = false);
@@ -68,10 +77,80 @@ class _AddCardPageState extends State<AddCardPage> {
       ).showSnackBar(SnackBar(content: Text('لطفاً هر دو قسمت را پر کنید')));
       return;
     }
-    final card = FlashCardModel(english: eng, persian: fa);
+    final card = FlashCardModel(
+      english: eng,
+      persian: fa,
+      phonetic: _phoneticText,
+    );
     await DBHelper.instance.insertCard(card);
     //Navigator.pop(context);
     _clearAll();
+  }
+
+  Future<void> _speakText() async {
+    if (_englishController.text.isEmpty) return;
+
+    setState(() {
+      _isSpeaking = true;
+    });
+
+    try {
+      await _ttsService.speak(_englishController.text);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() {
+        _isSpeaking = false;
+      });
+    }
+  }
+
+  Future<void> _getPronunciation() async {
+    if (_englishController.text.isEmpty) return;
+
+    setState(() {
+      _isGettingPronunciation = true;
+    });
+
+    try {
+      final pronunciation = await _pronunciationService.getPronunciation(
+        _englishController.text.trim(),
+      );
+
+      if (pronunciation != null) {
+        setState(() {
+          _phoneticText = pronunciation.phoneticText;
+          //  _audioUrl = pronunciation.audioUrl;
+        });
+
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('تلفظ دریافت شد'),
+        //     backgroundColor: Colors.green,
+        //   ),
+        // );
+      } else {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('تلفظ یافت نشد'),
+        //     backgroundColor: Colors.orange,
+        //   ),
+        // );
+      }
+    } catch (e) {
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text('خطا در دریافت تلفظ'),
+      //     backgroundColor: Colors.red,
+      //   ),
+      // );
+    } finally {
+      setState(() {
+        _isGettingPronunciation = false;
+      });
+    }
   }
 
   @override
@@ -166,6 +245,7 @@ class _AddCardPageState extends State<AddCardPage> {
                           .translate(text, to: 'fa')
                           .then((res) => res.text);
                       _persianController.text = tr;
+                      _speakText();
                     } catch (e) {
                       ScaffoldMessenger.of(
                         context,
@@ -176,6 +256,7 @@ class _AddCardPageState extends State<AddCardPage> {
                 ),
               ],
             ),
+            Text(_phoneticText ?? ''),
             SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _saveCard,

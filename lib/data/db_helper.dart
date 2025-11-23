@@ -110,7 +110,7 @@ class DBHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -138,6 +138,12 @@ class DBHelper {
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 3) {
+      await db.execute('''
+      ALTER TABLE cards ADD COLUMN phonetic TEXT
+    ''');
+    }
+
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE decks (

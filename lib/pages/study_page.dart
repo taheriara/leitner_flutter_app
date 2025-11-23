@@ -167,12 +167,16 @@ class _StudyPageState extends State<StudyPage> {
         height: double.infinity,
         width: double.infinity,
         padding: EdgeInsets.all(24),
-        child: Center(
-          child: Text(
-            showBack ? card.persian : card.english,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 32, color: textColor),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              showBack ? card.persian : card.english,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 32, color: textColor),
+            ),
+            Text(card.phonetic ?? ''),
+          ],
         ),
       ),
     );

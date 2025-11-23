@@ -6,6 +6,7 @@ class FlashCardModel {
   int deckId; // برای دسته بندی لغات که فعلا استفاده نشده است
   String english;
   String persian;
+  String? phonetic;
   int box; // 1..5
   int lastReviewed; // epoch milliseconds
 
@@ -14,6 +15,7 @@ class FlashCardModel {
     this.deckId = 1,
     required this.english,
     required this.persian,
+    this.phonetic,
     this.box = 1,
     int? lastReviewed,
   }) : lastReviewed = lastReviewed ?? 0;
@@ -24,6 +26,7 @@ class FlashCardModel {
       'deckId': deckId,
       'english': english,
       'persian': persian,
+      'phonetic': phonetic,
       'box': box,
       'lastReviewed': lastReviewed,
     };
@@ -35,6 +38,7 @@ class FlashCardModel {
       deckId: map['deckId'] as int,
       english: map['english'] as String,
       persian: map['persian'] as String,
+      phonetic: map['phonetic'] as String?,
       box: map['box'] as int,
       lastReviewed: map['lastReviewed'] as int,
     );
