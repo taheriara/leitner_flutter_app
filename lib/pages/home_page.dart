@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:leitner_flutter_app/pages/all_cards_page.dart';
+import 'package:leitner_flutter_app/pages/spelling_practice_page.dart';
+import 'package:leitner_flutter_app/pages/spelling_puzzle_page.dart';
+import 'package:leitner_flutter_app/pages/xp_page.dart';
 import '../data/db_helper.dart';
 import 'add_card_page.dart';
 import 'study_page.dart';
@@ -34,17 +37,10 @@ class _HomePageState extends State<HomePage> {
     return Card(
       child: ListTile(
         title: Text(boxNumber != 0 ? 'Box ${boxNumber}' : 'همه لغات'),
-        subtitle: Text(
-          boxNumber != 0
-              ? '${counts[boxNumber - 1]} cards'
-              : '${counts.sum().toString()} cards',
-        ),
+        subtitle: Text(boxNumber != 0 ? '${counts[boxNumber - 1]} cards' : '${counts.sum().toString()} cards'),
         trailing: Icon(Icons.chevron_right),
         onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AllCardsPage(box: boxNumber)),
-          );
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => AllCardsPage(box: boxNumber)));
           await _loadCounts();
         },
       ),
@@ -58,13 +54,17 @@ class _HomePageState extends State<HomePage> {
         title: Text('Leitner v1.0'),
         actions: [
           IconButton(
+            icon: Icon(Icons.edit_note),
+            tooltip: 'Spelling',
+            onPressed: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => SpellingPuzzlePage()));
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.play_arrow),
             tooltip: 'Study',
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => StudyPage()),
-              );
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => StudyPage()));
               await _loadCounts();
             },
           ),
@@ -76,10 +76,7 @@ class _HomePageState extends State<HomePage> {
         // backgroundColor: const Color.fromRGBO(82, 170, 94, 1.0),
         tooltip: 'Add Card',
         onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AddCardPage()),
-          );
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => AddCardPage()));
           await _loadCounts();
         },
         label: const Text('اضافه کردن کارت'),
@@ -102,15 +99,19 @@ class _HomePageState extends State<HomePage> {
               onPressed: () async {
                 await DBHelper.instance.shiftReviewDates(1);
                 await _loadCounts();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("آخرین مرور به یک روز قبل تنظیم شد"),
-                  ),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text("آخرین مرور به یک روز قبل تنظیم شد")));
               },
               icon: Icon(Icons.calendar_month),
               label: Text('تنظیم به یک روز قبل'),
             ),
+            // ElevatedButton(
+            //   child: Text("XP & Level"),
+            //   onPressed: () {
+            //     Navigator.push(context, MaterialPageRoute(builder: (_) => const XPPage()));
+            //   },
+            // ),
           ],
         ),
       ),

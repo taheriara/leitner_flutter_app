@@ -87,6 +87,8 @@
 // }
 
 // import 'package:leitner_flutter_app/data/models/flashcard_model.dart';
+import 'dart:math';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../data/models/flashcard_model.dart';
@@ -104,12 +106,19 @@ class DBHelper {
     return _db!;
   }
 
+  // ------------------------------------------------------------
+  // 🔥 ایجاد دیتابیس
+  // ------------------------------------------------------------
+
   Future<Database> _initDB() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'leitner.db');
 
     return await openDatabase(path, version: 1, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
+  // ------------------------------------------------------------
+  // 🔥 ساخت جداول
+  // ------------------------------------------------------------
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
@@ -131,19 +140,25 @@ class DBHelper {
         FOREIGN KEY(deckId) REFERENCES decks(id)
       );
     ''');
+    // ⭐ جدول XP — همیشه یک ردیف دارد
+    await db.execute('''
+      CREATE TABLE xp_data (
+        id INTEGER PRIMARY KEY,
+        xp INTEGER DEFAULT 0,
+        level INTEGER NOT NULL,
+        lastDailyReward INTEGER DEFAULT 0
+      )
+    ''');
+
+    // مقدار اولیه
+    await db.insert("xp_data", {"id": 1, "xp": 0, "level": 1, "lastDailyReward": 0});
   }
+  // ------------------------------------------------------------
+  // 🔥 آپگرید دیتابیس (اگر نسخه قبلی دارید)
+  // ------------------------------------------------------------
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('''
-        CREATE TABLE decks (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL
-        );
-      ''');
-
-      await db.execute('ALTER TABLE cards ADD COLUMN deckId INTEGER DEFAULT 1');
-    }
+    if (oldVersion < 2) {}
   }
 
   Future<List<FlashCardModel>> cardsByBox(int box) async {
@@ -180,7 +195,7 @@ class DBHelper {
   }
 
   Future<List<FlashCardModel>> pagedCards({
-    int limit = 5,
+    int limit = 50,
     int offset = 0,
     String? search,
     int box = 0, // ← فیلتر جدید
@@ -280,6 +295,102 @@ class DBHelper {
 
       return now >= next;
     }).toList();
+  }
+  // ------------------------------------------------------------
+  // ⭐ سیستم XP و Level
+  // ------------------------------------------------------------
+
+  // خواندن XP
+  Future<int> getXP() async {
+    final db = await database;
+    final data = await db.query("xp_data", where: "id = 1");
+    return data.first["xp"] as int;
+  }
+
+  // ذخیره XP
+  Future<void> setXP(int xp) async {
+    final db = await database;
+    await db.update("xp_data", {"xp": xp}, where: "id = 1");
+  }
+
+  // افزودن XP
+  Future<void> addXP(int amount) async {
+    final db = await database;
+
+    final data = await getXPData();
+    int xp = data["xp"]!;
+    int level = data["level"]!;
+
+    xp += amount;
+
+    // فرمول XP مورد نیاز برای لول‌آپ
+    int need = 50 + (level - 1) * 20;
+
+    // لول‌آپ اتوماتیک
+    while (xp >= need) {
+      xp -= need;
+      level++;
+      need = 50 + (level - 1) * 20;
+    }
+
+    await db.update("xp_data", {"xp": xp, "level": level}, where: "id = 1");
+  }
+
+  // Level = ریشه دوم XP
+  int calculateLevel(int xp) {
+    return sqrt(xp / 100).toInt();
+  }
+
+  // 🔥 ذخیره زمان آخرین پاداش روزانه
+  Future<int> getLastDailyReward() async {
+    final db = await database;
+    final data = await db.query("xp_data", where: "id = 1");
+    return data.first["lastDailyReward"] as int;
+  }
+
+  Future<void> setLastDailyReward(int timestamp) async {
+    final db = await database;
+    await db.update("xp_data", {"lastDailyReward": timestamp}, where: "id = 1");
+  }
+
+  Future<Map<String, int>> getXPData() async {
+    final db = await database;
+
+    final res = await db.query("xp_data");
+
+    if (res.isEmpty) {
+      // اگر هیچ رکوردی نبود، بسازیم
+      await db.insert("xp_data", {"xp": 0, "level": 1});
+      return {"xp": 0, "level": 1};
+    }
+
+    final row = res.first;
+
+    int xp = row["xp"] is int ? row["xp"] as int : 0;
+    int level = row["level"] is int ? row["level"] as int : 1;
+
+    return {"xp": xp, "level": level};
+  }
+
+  Future<void> addXPData(int amount) async {
+    final db = _db!;
+    final data = await getXPData();
+
+    int xp = data["xp"]!;
+    int level = data["level"]!;
+
+    xp += amount;
+
+    int xpNeeded = 50 + (level - 1) * 20;
+
+    // LEVEL UP
+    while (xp >= xpNeeded) {
+      xp -= xpNeeded;
+      level++;
+      xpNeeded = 50 + (level - 1) * 20;
+    }
+
+    await db.update("xp_data", {"xp": xp, "level": level}, where: "id = 1");
   }
 
   // -------------------------------------------------
