@@ -3,8 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:leitner_flutter_app/pages/all_cards_page.dart';
 import 'package:leitner_flutter_app/pages/spelling_practice_page.dart';
+// import 'package:leitner_flutter_app/pages/spelling_practice_page.dart';
 import 'package:leitner_flutter_app/pages/spelling_puzzle_page.dart';
-import 'package:leitner_flutter_app/pages/xp_page.dart';
+// import 'package:leitner_flutter_app/pages/xp_page.dart';
 import '../data/db_helper.dart';
 import 'add_card_page.dart';
 import 'study_page.dart';
@@ -91,7 +92,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => SpellingPuzzlePage()),
+                MaterialPageRoute(builder: (_) => SpellingPuzzlePage2()),
               );
             },
           ),
@@ -195,24 +196,20 @@ class _HomePageState extends State<HomePage> {
 
             SliderButton(
               boxShadow: BoxShadow(
-                color: Colors.grey.withOpacity(0.5), // Shadow color and opacity
-                spreadRadius: 5, // How much the shadow expands
-                blurRadius: 7, // How blurry the shadow is
-                offset: Offset(0, 3), // X and Y offset of the shadow
+                color: Colors.grey.withValues(
+                  alpha: 0.5,
+                ), // Shadow color and opacity
+                spreadRadius: 2, // How much the shadow expands
+                blurRadius: 4, // How blurry the shadow is
+                offset: Offset(0, 2), // X and Y offset of the shadow
               ),
               buttonSize: 60,
               shimmer: false,
               width: double.infinity,
               //buttonColor: const Color.fromARGB(255, 133, 130, 130),
               action: () async {
-                ///Do something here OnSlide
-                // ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                // ScaffoldMessenger.of(context).showSnackBar(
-                //   const SnackBar(
-                //     content: Text("به یک روز قبل تنظیم شد"),
-                //     duration: Duration(milliseconds: 800),
-                //   ),
-                // );
+                await DBHelper.instance.shiftReviewDates(1);
+                await _loadCounts();
                 _handleButtonPress();
                 return false;
               },
@@ -238,21 +235,6 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.black45,
               ),
             ),
-
-            // ElevatedButton.icon(
-            //   onPressed: () async {
-            //     await DBHelper.instance.shiftReviewDates(1);
-            //     await _loadCounts();
-            //     ScaffoldMessenger.of(context).showSnackBar(
-            //       const SnackBar(
-            //         content: Text("آخرین مرور به یک روز قبل تنظیم شد"),
-            //       ),
-            //     );
-            //   },
-            //   icon: Icon(Icons.calendar_month),
-            //   label: Text('تنظیم به یک روز قبل'),
-            // ),
-            //------------------------------
             // ElevatedButton(
             //   child: Text("XP & Level"),
             //   onPressed: () {
@@ -267,10 +249,12 @@ class _HomePageState extends State<HomePage> {
 }
 
 extension ListSum on List<int> {
-  int sum() => this.fold(0, (prev, element) => prev + element);
+  int sum() => fold(0, (prev, element) => prev + element);
 }
 
 class CustomDrawerHeader extends StatelessWidget {
+  const CustomDrawerHeader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
