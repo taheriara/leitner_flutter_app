@@ -8,6 +8,7 @@ import 'package:leitner_flutter_app/pages/xp_page.dart';
 import '../data/db_helper.dart';
 import 'add_card_page.dart';
 import 'study_page.dart';
+import 'package:slider_button/slider_button.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<int> counts = [0, 0, 0, 0, 0];
+  int _pressCount = 0;
 
   @override
   void initState() {
@@ -52,6 +54,29 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     );
+  }
+
+  void _handleButtonPress() {
+    _pressCount++;
+
+    // اگر SnackBar در حال نمایش است، فقط آپدیت کن
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    final snackBar = SnackBar(
+      content: Text("به $_pressCount روز قبل تنظیم شد"),
+      duration: const Duration(seconds: 2),
+    );
+
+    // وقتی SnackBar بسته شد، شمارنده را ریست کن
+    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((reason) {
+      if (reason == SnackBarClosedReason.timeout) {
+        if (mounted) {
+          setState(() {
+            _pressCount = 0;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -167,19 +192,67 @@ class _HomePageState extends State<HomePage> {
             _boxCard(0),
 
             SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () async {
-                await DBHelper.instance.shiftReviewDates(1);
-                await _loadCounts();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("آخرین مرور به یک روز قبل تنظیم شد"),
-                  ),
-                );
+
+            SliderButton(
+              boxShadow: BoxShadow(
+                color: Colors.grey.withOpacity(0.5), // Shadow color and opacity
+                spreadRadius: 5, // How much the shadow expands
+                blurRadius: 7, // How blurry the shadow is
+                offset: Offset(0, 3), // X and Y offset of the shadow
+              ),
+              buttonSize: 60,
+              shimmer: false,
+              width: double.infinity,
+              //buttonColor: const Color.fromARGB(255, 133, 130, 130),
+              action: () async {
+                ///Do something here OnSlide
+                // ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                // ScaffoldMessenger.of(context).showSnackBar(
+                //   const SnackBar(
+                //     content: Text("به یک روز قبل تنظیم شد"),
+                //     duration: Duration(milliseconds: 800),
+                //   ),
+                // );
+                _handleButtonPress();
+                return false;
               },
-              icon: Icon(Icons.calendar_month),
-              label: Text('تنظیم به یک روز قبل'),
+              label: Text(
+                "تنظیم تاریخ مرورها به یک روز قبل",
+                style: TextStyle(
+                  color: Color(0xff4a4a4a),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 17,
+                ),
+              ),
+              // icon: Text(
+              //   "x",
+              //   style: TextStyle(
+              //     color: Colors.black,
+              //     fontWeight: FontWeight.w400,
+              //     fontSize: 44,
+              //   ),
+              // ),
+              icon: Icon(
+                Icons.keyboard_arrow_right,
+                size: 42,
+                color: Colors.black45,
+              ),
             ),
+
+            // ElevatedButton.icon(
+            //   onPressed: () async {
+            //     await DBHelper.instance.shiftReviewDates(1);
+            //     await _loadCounts();
+            //     ScaffoldMessenger.of(context).showSnackBar(
+            //       const SnackBar(
+            //         content: Text("آخرین مرور به یک روز قبل تنظیم شد"),
+            //       ),
+            //     );
+            //   },
+            //   icon: Icon(Icons.calendar_month),
+            //   label: Text('تنظیم به یک روز قبل'),
+            // ),
+            //------------------------------
             // ElevatedButton(
             //   child: Text("XP & Level"),
             //   onPressed: () {

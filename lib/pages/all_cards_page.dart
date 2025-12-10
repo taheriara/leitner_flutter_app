@@ -78,7 +78,8 @@ class _AllCardsPageState extends State<AllCardsPage> {
   void _editCard(FlashCardModel card) {
     showDialog(
       context: context,
-      builder: (context) => EditCardDialog(card: card, onSaved: () => _loadCards(reset: true)),
+      builder: (context) =>
+          EditCardDialog(card: card, onSaved: () => _loadCards(reset: true)),
     );
   }
 
@@ -89,7 +90,10 @@ class _AllCardsPageState extends State<AllCardsPage> {
         title: const Text("حذف لغت"),
         content: Text("آیا از حذف لغت '${card.english}' مطمئنید؟"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("انصراف")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("انصراف"),
+          ),
           TextButton(
             onPressed: () async {
               final db = DBHelper.instance;
@@ -97,7 +101,9 @@ class _AllCardsPageState extends State<AllCardsPage> {
               if (!mounted) return;
               Navigator.pop(context);
               _loadCards(reset: true);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("لغت '${card.english}' حذف شد")));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("لغت '${card.english}' حذف شد")),
+              );
             },
             child: const Text("حذف", style: TextStyle(color: Colors.red)),
           ),
@@ -122,7 +128,7 @@ class _AllCardsPageState extends State<AllCardsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.box != 0 ? 'جعبه ${widget.box}' : 'همه لغات'),
+        title: Text(widget.box != 0 ? 'Box ${widget.box}' : 'همه لغات'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -147,8 +153,12 @@ class _AllCardsPageState extends State<AllCardsPage> {
                     decoration: InputDecoration(
                       hintText: "Search...",
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
                     ),
                   ),
                 )
@@ -160,14 +170,17 @@ class _AllCardsPageState extends State<AllCardsPage> {
                 : _cards.isEmpty
                 ? Center(
                     child: Text(
-                      _searchQuery.isEmpty ? "هیچ لغتی اضافه نشده" : "نتیجه‌ای یافت نشد",
+                      _searchQuery.isEmpty
+                          ? "هیچ لغتی اضافه نشده"
+                          : "نتیجه‌ای یافت نشد",
                       style: const TextStyle(fontSize: 16),
                     ),
                   )
                 : NotificationListener<ScrollNotification>(
                     onNotification: (scrollNotification) {
                       if (scrollNotification is ScrollEndNotification &&
-                          scrollNotification.metrics.pixels == scrollNotification.metrics.maxScrollExtent) {
+                          scrollNotification.metrics.pixels ==
+                              scrollNotification.metrics.maxScrollExtent) {
                         _loadMore();
                       }
                       return false;
@@ -197,9 +210,12 @@ class _AllCardsPageState extends State<AllCardsPage> {
       try {
         await _ttsService.speak(str);
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطا در پخش تلفظ'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطا در پخش تلفظ'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
 
@@ -248,19 +264,31 @@ class _AllCardsPageState extends State<AllCardsPage> {
                 children: [
                   // سلول فارسی (سمت راست)
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                     child: Text(
                       card.persian,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                       textAlign: TextAlign.right,
                     ),
                   ),
                   // سلول انگلیسی (سمت چپ)
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                     child: Text(
                       card.english,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                       textAlign: TextAlign.left,
                     ),
                   ),
@@ -282,10 +310,16 @@ class _AllCardsPageState extends State<AllCardsPage> {
             : _hasMore
             ? ElevatedButton(
                 onPressed: _loadMore,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('بارگذاری بیشتر'),
               )
-            : const Text('همه لغات نمایش داده شد', style: TextStyle(color: Colors.grey)),
+            : const Text(
+                'همه لغات نمایش داده شد',
+                style: TextStyle(color: Colors.grey),
+              ),
       ),
     );
   }
@@ -332,7 +366,10 @@ class _EditCardDialogState extends State<EditCardDialog> {
           children: [
             TextFormField(
               controller: _englishController,
-              decoration: const InputDecoration(labelText: "لغت انگلیسی", border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: "لغت انگلیسی",
+                border: OutlineInputBorder(),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return "لطفا لغت انگلیسی را وارد کنید";
@@ -343,7 +380,10 @@ class _EditCardDialogState extends State<EditCardDialog> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _persianController,
-              decoration: const InputDecoration(labelText: "معنی فارسی", border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: "معنی فارسی",
+                border: OutlineInputBorder(),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return "لطفا معنی فارسی را وارد کنید";
@@ -355,7 +395,10 @@ class _EditCardDialogState extends State<EditCardDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("انصراف")),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("انصراف"),
+        ),
         ElevatedButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
@@ -374,7 +417,9 @@ class _EditCardDialogState extends State<EditCardDialog> {
               Navigator.pop(context);
               widget.onSaved();
 
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("لغت با موفقیت ویرایش شد")));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("لغت با موفقیت ویرایش شد")),
+              );
             }
           },
           child: const Text("ذخیره"),
