@@ -201,13 +201,16 @@ class _AddCardPageState extends State<AddCardPage> {
             //   child: Text(_phoneticText != null && _phoneticText!.isNotEmpty ? '$_phoneticText 🕩' : ''),
             // ),
             SizedBox(
-              height: 48, // ارتفاع ثابت
+              height: 38, // ارتفاع ثابت
               child: TextButton(
                 onPressed: (_phoneticText != null && _phoneticText!.isNotEmpty) ? () => _speakText() : null,
-                child: Text(_phoneticText != null && _phoneticText!.isNotEmpty ? '$_phoneticText 🕩' : ''),
+                child: Text(
+                  _phoneticText != null && _phoneticText!.isNotEmpty ? '🔉  $_phoneticText' : '',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ),
-            SizedBox(height: 14),
+            SizedBox(height: 10),
             ElevatedButton.icon(onPressed: _saveCard, icon: Icon(Icons.save), label: Text('ذخیره')),
           ],
         ),
