@@ -198,8 +198,7 @@ class SpellingPuzzlePage2 extends StatefulWidget {
   State<SpellingPuzzlePage2> createState() => _SpellingPuzzlePage2State();
 }
 
-class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
-    with SingleTickerProviderStateMixin {
+class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2> with SingleTickerProviderStateMixin {
   List<FlashCardModel> _cards = [];
   int _index = 0;
 
@@ -223,15 +222,14 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
 
   final Random _rnd = Random();
 
+  bool Spelling_finish = false;
+
   @override
   void initState() {
     super.initState();
     _loadCards();
 
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 220),
-    );
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 220));
     _scaleAnim = Tween<double>(
       begin: 1.0,
       end: 1.08,
@@ -293,8 +291,7 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
 
     int removeCount = max(1, (letterIndexes.length * 0.30).round());
     final indexesToRemove = <int>{};
-    while (indexesToRemove.length < removeCount &&
-        indexesToRemove.length < letterIndexes.length) {
+    while (indexesToRemove.length < removeCount && indexesToRemove.length < letterIndexes.length) {
       indexesToRemove.add(letterIndexes[_rnd.nextInt(letterIndexes.length)]);
     }
 
@@ -398,7 +395,7 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
       _correctCount++;
       _playSuccessAnim();
       // می‌توان اینجا XP بدهیم یا آپدیت DB
-      Future.delayed(const Duration(milliseconds: 450), () => _goNext());
+      Future.delayed(const Duration(seconds: 1), () => _goNext());
     } else {
       _correctResult = false;
       _wrongCount++;
@@ -416,6 +413,7 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
       _preparePuzzle();
     } else {
       // تمام شد
+      Spelling_finish = true;
       setState(() {});
     }
   }
@@ -497,14 +495,9 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
             backgroundColor: used ? Colors.grey.shade300 : Colors.blue.shade700,
             foregroundColor: used ? Colors.grey.shade600 : Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          child: Text(
-            letter.toUpperCase(),
-            style: const TextStyle(fontSize: 18),
-          ),
+          child: Text(letter.toUpperCase(), style: const TextStyle(fontSize: 18)),
         );
       }),
     );
@@ -517,7 +510,8 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
     }
 
     if (_cards.isEmpty) {
-      return const Scaffold(
+      return Scaffold(
+        appBar: AppBar(title: const Text("تمرین املا")),
         body: Center(child: Text("هیچ لغتی برای تمرین موجود نیست")),
       );
     }
@@ -528,19 +522,12 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
       appBar: AppBar(
         title: const Text("تمرین املا"),
         actions: [
-          Center(
-            child: Text(
-              "${_index + 1} / ${_cards.length}",
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
+          ?!Spelling_finish
+              ? Center(child: Text("${_index + 1} / ${_cards.length}", style: const TextStyle(fontSize: 16)))
+              : null,
           const SizedBox(width: 12),
-          IconButton(icon: const Icon(Icons.volume_up), onPressed: _speak),
-          IconButton(
-            icon: const Icon(Icons.skip_next),
-            tooltip: "بلدم",
-            onPressed: _skip,
-          ),
+          ?!Spelling_finish ? IconButton(icon: const Icon(Icons.volume_up), onPressed: _speak) : null,
+          // IconButton(icon: const Icon(Icons.skip_next), tooltip: "بلدم", onPressed: _skip),
           const SizedBox(width: 6),
         ],
       ),
@@ -548,80 +535,57 @@ class _SpellingPuzzlePage2State extends State<SpellingPuzzlePage2>
         padding: const EdgeInsets.all(18),
         child: Column(
           children: [
-            const SizedBox(height: 12),
+            if (!Spelling_finish) ...[
+              const SizedBox(height: 12),
 
-            // پازل با انیمیشن و رنگ‌بندی
-            _buildPuzzleText(),
+              // پازل با انیمیشن و رنگ‌بندی
+              _buildPuzzleText(),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
-            // گزینه‌ها
-            _buildOptionsGrid(),
+              // نمایش معنی و شمارنده درست/غلط
+              Text(card.persian, style: const TextStyle(fontSize: 22, color: Colors.grey)),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 24),
 
-            // کنترل‌ها: پاک کردن یک حرف، بررسی، شمارنده
+              // گزینه‌ها
+              _buildOptionsGrid(),
+
+              const SizedBox(height: 16),
+
+              // کنترل‌ها: پاک کردن یک حرف، بررسی، شمارنده
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(onPressed: _skip, icon: const Icon(Icons.skip_next), label: const Text("بلدم")),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: _deleteOne,
+                    icon: const Icon(Icons.backspace),
+                    label: const Text("پاک کن"),
+                    //style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade700),
+                  ),
+
+                  // ElevatedButton.icon(
+                  //   onPressed: !_userChars.contains('_') ? _checkAnswer : null,
+                  //   icon: const Icon(Icons.check),
+                  //   label: const Text("بررسی"),
+                  //   style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700),
+                  // ),
+                  // const SizedBox(width: 12),
+                ],
+              ),
+              // const SizedBox(height: 18),
+              Spacer(),
+            ],
+            ?Spelling_finish ? Center(child: Text('تمام شد', style: const TextStyle(fontSize: 20))) : null,
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _deleteOne,
-                  icon: const Icon(Icons.backspace),
-                  label: const Text("پاک کردن یک حرف"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: !_userChars.contains('_') ? _checkAnswer : null,
-                  icon: const Icon(Icons.check),
-                  label: const Text("بررسی"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade700,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _skip,
-                  icon: const Icon(Icons.fast_forward),
-                  label: const Text("بلدم"),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-
-            // نمایش معنی و شمارنده درست/غلط
-            Text(
-              card.persian,
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Chip(
-                  avatar: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  label: Text("درست: $_correctCount"),
-                  backgroundColor: Colors.green.shade600,
-                  labelStyle: const TextStyle(color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Chip(
-                  avatar: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  label: Text("غلط: $_wrongCount"),
-                  backgroundColor: Colors.red.shade600,
-                  labelStyle: const TextStyle(color: Colors.white),
-                ),
+                Text("غلط: $_wrongCount", style: const TextStyle(color: Colors.grey)),
+                const SizedBox(width: 16),
+                Text("درست: $_correctCount", style: const TextStyle(color: Colors.grey)),
               ],
             ),
           ],
