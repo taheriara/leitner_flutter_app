@@ -1,5 +1,6 @@
 // home_page.dart
 
+import 'package:action_slider/action_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:leitner_flutter_app/pages/all_cards_page.dart';
 import 'package:leitner_flutter_app/pages/spelling_practice_page.dart';
@@ -9,7 +10,6 @@ import 'package:leitner_flutter_app/pages/spelling_puzzle_page.dart';
 import '../data/db_helper.dart';
 import 'add_card_page.dart';
 import 'study_page.dart';
-import 'package:slider_button/slider_button.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -40,17 +40,10 @@ class _HomePageState extends State<HomePage> {
     return Card(
       child: ListTile(
         title: Text(boxNumber != 0 ? 'Box ${boxNumber}' : 'همه لغات'),
-        subtitle: Text(
-          boxNumber != 0
-              ? '${counts[boxNumber - 1]} cards'
-              : '${counts.sum().toString()} cards',
-        ),
+        subtitle: Text(boxNumber != 0 ? '${counts[boxNumber - 1]} cards' : '${counts.sum().toString()} cards'),
         trailing: Icon(Icons.chevron_right),
         onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AllCardsPage(box: boxNumber)),
-          );
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => AllCardsPage(box: boxNumber)));
           await _loadCounts();
         },
       ),
@@ -63,10 +56,7 @@ class _HomePageState extends State<HomePage> {
     // اگر SnackBar در حال نمایش است، فقط آپدیت کن
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-    final snackBar = SnackBar(
-      content: Text("به $_pressCount روز قبل تنظیم شد"),
-      duration: const Duration(seconds: 2),
-    );
+    final snackBar = SnackBar(content: Text("به $_pressCount روز قبل تنظیم شد"), duration: const Duration(seconds: 2));
 
     // وقتی SnackBar بسته شد، شمارنده را ریست کن
     ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((reason) {
@@ -90,20 +80,14 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.edit_note),
             tooltip: 'Spelling',
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SpellingPuzzlePage2()),
-              );
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => SpellingPuzzlePage2()));
             },
           ),
           IconButton(
             icon: Icon(Icons.play_arrow),
             tooltip: 'Study',
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => StudyPage()),
-              );
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => StudyPage()));
               await _loadCounts();
             },
           ),
@@ -171,10 +155,7 @@ class _HomePageState extends State<HomePage> {
         // backgroundColor: const Color.fromRGBO(82, 170, 94, 1.0),
         tooltip: 'Add Card',
         onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AddCardPage()),
-          );
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => AddCardPage()));
           await _loadCounts();
         },
         label: const Text('اضافه کردن کارت'),
@@ -192,49 +173,27 @@ class _HomePageState extends State<HomePage> {
             _boxCard(5),
             _boxCard(0),
 
-            SizedBox(height: 20),
+            SizedBox(height: 10),
 
-            SliderButton(
-              boxShadow: BoxShadow(
-                color: Colors.grey.withValues(
-                  alpha: 0.5,
-                ), // Shadow color and opacity
-                spreadRadius: 2, // How much the shadow expands
-                blurRadius: 4, // How blurry the shadow is
-                offset: Offset(0, 2), // X and Y offset of the shadow
-              ),
-              buttonSize: 60,
-              shimmer: false,
-              width: double.infinity,
-              //buttonColor: const Color.fromARGB(255, 133, 130, 130),
-              action: () async {
+            ActionSlider.standard(
+              //sliderBehavior: SliderBehavior.stretch,
+              //width: 300.0,
+              backgroundColor: Colors.white,
+              toggleColor: Colors.lightGreenAccent,
+              icon: _pressCount == 0 ? Icon(Icons.arrow_forward_outlined) : Text(_pressCount.toString()),
+              action: (controller) async {
                 await DBHelper.instance.shiftReviewDates(1);
                 await _loadCounts();
                 _handleButtonPress();
-                return false;
+                //controller.loading(); //starts loading animation
+                // await Future.delayed(const Duration(seconds: 3));
+                // controller.success(); //starts success animation
+                // await Future.delayed(const Duration(seconds: 1));
+                // controller.reset(); //resets the slider
               },
-              label: Text(
-                "تنظیم تاریخ مرورها به یک روز قبل",
-                style: TextStyle(
-                  color: Color(0xff4a4a4a),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 17,
-                ),
-              ),
-              // icon: Text(
-              //   "x",
-              //   style: TextStyle(
-              //     color: Colors.black,
-              //     fontWeight: FontWeight.w400,
-              //     fontSize: 44,
-              //   ),
-              // ),
-              icon: Icon(
-                Icons.keyboard_arrow_right,
-                size: 42,
-                color: Colors.black45,
-              ),
+              child: const Text('تنظیم تاریخ مرورها به یک روز قبل'),
             ),
+
             // ElevatedButton(
             //   child: Text("XP & Level"),
             //   onPressed: () {
@@ -278,14 +237,8 @@ class CustomDrawerHeader extends StatelessWidget {
               child: Center(
                 child: Column(
                   children: [
-                    Text(
-                      'Leitner v1.0',
-                      style: TextStyle(color: Colors.black, fontSize: 32.0),
-                    ),
-                    Text(
-                      'Clean App',
-                      style: TextStyle(color: Colors.black, fontSize: 14.0),
-                    ),
+                    Text('Leitner v1.0', style: TextStyle(color: Colors.black, fontSize: 32.0)),
+                    Text('Clean App', style: TextStyle(color: Colors.black, fontSize: 14.0)),
                     Image.asset('assets/images/box.gif', width: 170),
                   ],
                 ),

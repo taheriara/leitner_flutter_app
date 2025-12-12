@@ -20,6 +20,7 @@
 // - This is a compact, single-file example for clarity. For production, split into multiple files and add error handling.
 
 import 'package:flutter/material.dart';
+import 'package:leitner_flutter_app/pages/slide.dart';
 import 'data/db_helper.dart';
 import 'pages/home_page.dart';
 
